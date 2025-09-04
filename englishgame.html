@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扭蛋英文小挑战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Arial Rounded MT Bold", sans-serif;
+        }
+        body {
+            background-color: #f0f8ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #ff6b6b;
+            margin-bottom: 30px;
+            font-size: 24px;
+            text-align: center;
+        }
+        /* 扭蛋容器 */
+        .gacha-container {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        /* 扭蛋样式 */
+        .gacha {
+            width: 120px;
+            height: 150px;
+            border-radius: 50% 50% 40% 40%;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+        .gacha:hover {
+            transform: translateY(-5px);
+        }
+        /* 扭蛋颜色 */
+        .gacha-red { background-color: #ff6b6b; }
+        .gacha-yellow { background-color: #ffd93d; }
+        .gacha-blue { background-color: #4d96ff; }
+        .gacha-green { background-color: #6bcb77; }
+        .gacha-pink { background-color: #ff6b9d; }
+        .gacha-purple { background-color: #a763e4; }
+        /* 扭蛋高光（增加立体感） */
+        .gacha::after {
+            content: "";
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.3);
+        }
+        /* 句子弹窗 */
+        .sentence-modal {
+            width: 80%;
+            max-width: 500px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        .sentence-modal.active {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        #english-sentence {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 25px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+        /* 关闭按钮 */
+        .close-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 30px;
+            background-color: #ff6b6b;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .close-btn:hover {
+            background-color: #e55353;
+        }
+        /* 遮罩层 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.3);
+            z-index: 90;
+            display: none;
+        }
+        .overlay.active {
+            display: block;
+        }
+        /* 适配手机屏幕 */
+        @media (max-width: 480px) {
+            .gacha-container {
+                grid-template-columns: repeat(2, 100px);
+                gap: 20px;
+            }
+            .gacha {
+                width: 100px;
+                height: 130px;
+            }
+            #english-sentence {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>✨ 扭蛋英文小挑战 ✨</h1>
+    
+    <!-- 扭蛋容器 -->
+    <div class="gacha-container">
+        <div class="gacha gacha-red"></div>
+        <div class="gacha gacha-yellow"></div>
+        <div class="gacha gacha-blue"></div>
+        <div class="gacha gacha-green"></div>
+        <div class="gacha gacha-pink"></div>
+        <div class="gacha gacha-purple"></div>
+    </div>
+    
+    <!-- 句子弹窗（无录音功能） -->
+    <div class="overlay"></div>
+    <div class="sentence-modal">
+        <div id="english-sentence">点击任意扭蛋，获取英文小句子吧！</div>
+        <button class="close-btn" id="close-modal">关闭</button>
+    </div>
+
+    <script>
+        // 英文句子库（可自行添加/修改，适合高班小朋友的日常句型）
+        const englishSentences = [
+            "How is the weather today?", // 今天天气怎么样？
+            "What is your favorite color?", // 你最喜欢的颜色是什么？
+            "How old are you?", // 你几岁了？
+            "Do you like pandas?", // 你喜欢熊猫吗？
+            "Good morning, teacher!", // 老师早上好！
+            "What animal can fly?", // 什么动物会飞？
+            "I love my family.", // 我爱我的家人。
+            "Can you count to 5?", // 你能数到5吗？
+            "What do you eat for breakfast?", // 你早餐吃什么？
+            "Let's play together!", // 我们一起玩吧！
+            "This is a red apple.", // 这是一个红色的苹果。
+            "Where is your book?", // 你的书在哪里？
+            "I am happy today.", // 我今天很开心。
+            "Do you like singing?", // 你喜欢唱歌吗？
+            "What time do you go to bed?", // 你几点睡觉？
+        ];
+
+        // 获取DOM元素
+        const gachas = document.querySelectorAll(".gacha");
+        const modal = document.querySelector(".sentence-modal");
+        const overlay = document.querySelector(".overlay");
+        const sentenceElement = document.getElementById("english-sentence");
+        const closeBtn = document.getElementById("close-modal");
+
+        // 点击扭蛋：弹出随机英文句子
+        gachas.forEach(gacha => {
+            gacha.addEventListener("click", () => {
+                // 随机选择一句英文（每次点击都不一样）
+                const randomIndex = Math.floor(Math.random() * englishSentences.length);
+                const randomSentence = englishSentences[randomIndex];
+                sentenceElement.textContent = randomSentence;
+                
+                // 显示弹窗和遮罩
+                modal.classList.add("active");
+                overlay.classList.add("active");
+            });
+        });
+
+        // 点击关闭：隐藏弹窗
+        closeBtn.addEventListener("click", () => {
+            modal.classList.remove("active");
+            overlay.classList.remove("active");
+        });
+
+        // 可选：点击遮罩层也能关闭弹窗（提升操作便捷性）
+        overlay.addEventListener("click", () => {
+            modal.classList.remove("active");
+            overlay.classList.remove("active");
+        });
+    </script>
+</body>
+</html>
